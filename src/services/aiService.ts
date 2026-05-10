@@ -1,10 +1,10 @@
-import { GoogleGenAI, Type, FunctionDeclaration } from "@google/genai";
+import { GoogleGenAI, Type } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
 const MODEL_NAME = "gemini-3-flash-preview";
 
 // Definitions of functions the AI can call
-export const AI_FUNCTIONS: FunctionDeclaration[] = [
+export const AI_FUNCTIONS: any[] = [
   {
     name: "registarTransacao",
     description: "Regista uma nova entrada ou saída (despesa) no sistema.",
