@@ -657,7 +657,7 @@ export function RelatoriosInteligentes({ transacoes, appId, contaNegocio, mostra
                  </p>
                  <button 
                    onClick={() => {
-                      const url = "https://ais-pre-l2o2lcgxfj57ykpvcxez3q-419044323565.europe-west1.run.app";
+                      const url = "https://seraesse.vercel.app/";
                       navigator.clipboard.writeText(url);
                       mostrarAlerta("Link Copiado", "O link foi copiado. Cola no teu navegador Chrome para baixar os relatórios.");
                    }}

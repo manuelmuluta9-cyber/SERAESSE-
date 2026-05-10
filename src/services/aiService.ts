@@ -1,6 +1,8 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
+// Gemini Initialization (Frontend directly per guidelines)
+// In AI Studio React apps, process.env.GEMINI_API_KEY is available in the frontend
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 const MODEL_NAME = "gemini-3-flash-preview";
 
 // Definitions of functions the AI can call
@@ -49,23 +51,24 @@ export const getSystemIntelligence = async (appState: any) => {
   try {
     const response = await ai.models.generateContent({
       model: MODEL_NAME,
-      contents: `
+      contents: [{ role: 'user', parts: [{ text: `
         Analisa os seguintes dados do sistema EGMAN PLAY e fornece 3 recomendações curtas e diretas em formato JSON.
         Dados: ${JSON.stringify(appState)}
         
         O JSON deve ser um objeto com um array de strings chamado "recomendas".
         Exemplos de tom: "Sábado é o dia com mais lucro", "A Máquina 3 está a ser pouco rentável", "O Funcionário X é o que faturou mais".
-      `,
+      `}]}],
       config: {
         responseMimeType: "application/json",
       }
     });
     
-    const data = JSON.parse(response.text || "{}");
+    if (!response.text) return [];
+    const data = JSON.parse(response.text);
     return data.recomendas || [];
   } catch (error) {
     console.error("AI Error:", error);
-    return [];
+    return ["Não foi possível carregar os insights. Tenta novamente mais tarde."];
   }
 };
 
@@ -73,13 +76,6 @@ export const chatWithManager = async (message: string, appState: any, history: a
   try {
     const response = await ai.models.generateContent({
       model: MODEL_NAME,
-      contents: [
-        ...history.map((h: any) => ({
-          role: h.role === "user" ? "user" : "model",
-          parts: [{ text: h.parts?.[0]?.text || h.text || "" }]
-        })),
-        { role: "user", parts: [{ text: message }] }
-      ],
       config: {
         systemInstruction: `
           És o EGMAN MANAGER IA, o assistente inteligente oficial do sistema EGMAN PLAY.
@@ -95,12 +91,19 @@ export const chatWithManager = async (message: string, appState: any, history: a
           4. Sê profissional, direto e focado no crescimento do negócio.
           5. Podes prever lucros e tendências com base nas transações fornecidas.
         `,
-      }
+      },
+      contents: [
+        ...history.map((h: any) => ({
+          role: h.role === "user" ? "user" : "model",
+          parts: [{ text: h.parts?.[0]?.text || h.text || "" }]
+        })),
+        { role: "user", parts: [{ text: message }] }
+      ],
     });
     
-    return { response: { text: () => response.text } };
+    return { response: { text: () => response.text || "Desculpa, não percebi. Podes repetir?" } };
   } catch (error) {
     console.error("Chat Error:", error);
-    return { response: { text: () => "Desculpa, ocorreu um erro ao contactar a minha inteligência central no APK. Verifica a ligação." } };
+    return { response: { text: () => "Desculpa, ocorreu um erro ao contactar a minha inteligência central. Verifica a ligação." } };
   }
 };
